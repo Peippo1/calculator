@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { evaluate } from 'mathjs';
 import './App.css';
 
-const OPERATORS = new Set(['+', '-', '*', '/']);
+const OPERATORS = new Set(['+', '-', '*', '/', '^']);
 const MEMORY_KEYS = new Set(['MC', 'MR', 'M+', 'M-']);
 const BUTTONS = [
   'MC',
@@ -29,6 +29,10 @@ const BUTTONS = [
   '0',
   '.',
   '+',
+  '^',
+  '√',
+  '%',
+  'Ans',
   '=',
 ];
 
@@ -45,13 +49,24 @@ const getLastNumberBounds = (value) => {
 };
 
 const App = () => {
-  const [expression, setExpression] = useState('0');
-  const [result, setResult] = useState('0');
+  const [expression, setExpression] = useState(() => window.localStorage.getItem('calc-expression') || '0');
+  const [result, setResult] = useState(() => window.localStorage.getItem('calc-result') || '0');
   const [error, setError] = useState('');
-  const [history, setHistory] = useState([]);
-  const [memory, setMemory] = useState(null);
-  const [theme, setTheme] = useState('dark');
+  const [history, setHistory] = useState(() => {
+    try {
+      const raw = window.localStorage.getItem('calc-history');
+      return raw ? JSON.parse(raw) : [];
+    } catch (err) {
+      return [];
+    }
+  });
+  const [memory, setMemory] = useState(() => {
+    const raw = window.localStorage.getItem('calc-memory');
+    return raw ? Number(raw) : null;
+  });
+  const [theme, setTheme] = useState(() => window.localStorage.getItem('calc-theme') || 'dark');
   const [copyStatus, setCopyStatus] = useState('');
+  const [justEvaluated, setJustEvaluated] = useState(false);
   const wrapperRef = useRef(null);
 
   useEffect(() => {
@@ -62,12 +77,42 @@ const App = () => {
     document.body.dataset.theme = theme;
   }, [theme]);
 
+  useEffect(() => {
+    window.localStorage.setItem('calc-expression', expression);
+    window.localStorage.setItem('calc-result', result);
+    window.localStorage.setItem('calc-theme', theme);
+    window.localStorage.setItem('calc-memory', memory ?? '');
+    window.localStorage.setItem('calc-history', JSON.stringify(history));
+  }, [expression, result, theme, memory, history]);
+
   const displayExpression = useMemo(() => (error ? 'Error' : expression), [expression, error]);
+  const parenBalance = useMemo(() => {
+    const open = (expression.match(/\(/g) || []).length;
+    const close = (expression.match(/\)/g) || []).length;
+    return open - close;
+  }, [expression]);
+
+  const livePreview = useMemo(() => {
+    if (error || !expression) return '';
+    if (OPERATORS.has(expression.at(-1)) || expression.at(-1) === '(') return '';
+    if (parenBalance !== 0) return 'Unmatched parentheses';
+    try {
+      const evaluated = evaluate(expression);
+      return `≈ ${evaluated}`;
+    } catch (err) {
+      return '';
+    }
+  }, [expression, error, parenBalance]);
 
   const lastNumberHasDecimal = (value) => {
     const { start, end } = getLastNumberBounds(value);
     const lastNumber = value.slice(start, end);
     return lastNumber.includes('.');
+  };
+
+  const replaceLastNumber = (value, nextNumber) => {
+    const { start, end } = getLastNumberBounds(value);
+    return `${value.slice(0, start)}${nextNumber}${value.slice(end)}` || '0';
   };
 
   const handleMemory = (type, currentResult) => {
@@ -91,6 +136,11 @@ const App = () => {
   const handleInput = (value) => {
     setError('');
     setCopyStatus('');
+    if (value !== '=') {
+      setJustEvaluated(false);
+    }
+
+    const resetPrevious = justEvaluated && (/[0-9]/.test(value) || value === '.' || value === '(' || value === '√');
 
     if (MEMORY_KEYS.has(value)) {
       handleMemory(value, result);
@@ -110,8 +160,9 @@ const App = () => {
 
     if (value === '⌫' || value === 'BACKSPACE') {
       setExpression((prev) => {
-        if (prev.length <= 1) return '0';
-        return prev.slice(0, -1);
+        const base = resetPrevious ? '' : prev;
+        if (base.length <= 1) return '0';
+        return base.slice(0, -1);
       });
       return;
     }
@@ -121,6 +172,10 @@ const App = () => {
         setError('Incomplete expression');
         return;
       }
+      if (parenBalance !== 0) {
+        setError('Unmatched parentheses');
+        return;
+      }
 
       try {
         const evaluated = evaluate(expression);
@@ -128,43 +183,82 @@ const App = () => {
         setResult(evaluatedStr);
         setExpression(evaluatedStr);
         setHistory((prev) => [{ expression, result: evaluatedStr }, ...prev].slice(0, 5));
+        setJustEvaluated(true);
       } catch (err) {
         setError('Could not evaluate');
       }
       return;
     }
 
+    if (value === 'Ans') {
+      setExpression((prev) => {
+        if (justEvaluated) return result;
+        return prev === '0' || resetPrevious ? result : `${prev}${result}`;
+      });
+      return;
+    }
+
     if (value === '±') {
       setExpression((prev) => {
-        if (!prev) return prev;
-        const { start, end } = getLastNumberBounds(prev);
-        const currentNumber = prev.slice(start, end);
-        if (!currentNumber) return prev;
+        const base = resetPrevious ? '' : prev;
+        if (!base) return base;
+        const { start, end } = getLastNumberBounds(base);
+        const currentNumber = base.slice(start, end);
+        if (!currentNumber) return base;
         const toggled = currentNumber.startsWith('-') ? currentNumber.slice(1) : `-${currentNumber}`;
-        const next = `${prev.slice(0, start)}${toggled}${prev.slice(end)}`;
+        const next = `${base.slice(0, start)}${toggled}${base.slice(end)}`;
         return next || '0';
       });
       return;
     }
 
     if (value === '(') {
-      setExpression((prev) => (prev === '0' ? '(' : prev + '('));
+      setExpression((prev) => {
+        const base = resetPrevious ? '' : prev;
+        return base === '0' || base === '' ? '(' : base + '(';
+      });
       return;
     }
 
     if (value === ')') {
       setExpression((prev) => {
-        const open = (prev.match(/\(/g) || []).length;
-        const close = (prev.match(/\)/g) || []).length;
-        if (open <= close) return prev;
-        if (OPERATORS.has(prev.at(-1)) || prev.at(-1) === '(') return prev;
-        return prev + ')';
+        const base = resetPrevious ? '' : prev;
+        const open = (base.match(/\(/g) || []).length;
+        const close = (base.match(/\)/g) || []).length;
+        if (open <= close) return base || '0';
+        if (OPERATORS.has(base.at(-1)) || base.at(-1) === '(') return base || '0';
+        return base + ')';
+      });
+      return;
+    }
+
+    if (value === '%') {
+      setExpression((prev) => {
+        const base = resetPrevious ? '' : prev;
+        const { start, end } = getLastNumberBounds(base);
+        const number = base.slice(start, end);
+        const numeric = Number(number);
+        if (Number.isNaN(numeric)) return base || '0';
+        const percentValue = numeric / 100;
+        return replaceLastNumber(base || '0', percentValue);
+      });
+      return;
+    }
+
+    if (value === '√') {
+      setExpression((prev) => {
+        const base = resetPrevious ? '' : prev;
+        const { start, end } = getLastNumberBounds(base);
+        const number = base.slice(start, end) || '0';
+        const wrapped = `sqrt(${number})`;
+        return replaceLastNumber(base || '0', wrapped);
       });
       return;
     }
 
     setExpression((prev) => {
-      const previous = prev === '0' && !OPERATORS.has(value) ? '' : prev;
+      const base = resetPrevious ? '' : prev;
+      const previous = base === '0' && !OPERATORS.has(value) ? '' : base;
       const lastChar = previous.at(-1);
 
       if (value === '.' && lastNumberHasDecimal(previous)) {
@@ -172,7 +266,7 @@ const App = () => {
       }
 
       if (OPERATORS.has(value)) {
-        if (!previous || previous === '(') return previous;
+        if (!previous || previous === '(') return previous || '0';
         if (OPERATORS.has(lastChar)) {
           return previous.slice(0, -1) + value;
         }
@@ -221,6 +315,30 @@ const App = () => {
     if (key === 'Delete') {
       event.preventDefault();
       handleInput('C');
+      return;
+    }
+
+    if (key.toLowerCase() === 'a') {
+      event.preventDefault();
+      handleInput('Ans');
+      return;
+    }
+
+    if (key === '%') {
+      event.preventDefault();
+      handleInput('%');
+      return;
+    }
+
+    if (key === '^') {
+      event.preventDefault();
+      handleInput('^');
+      return;
+    }
+
+    if (lower === 's') {
+      event.preventDefault();
+      handleInput('√');
     }
   };
 
@@ -273,7 +391,7 @@ const App = () => {
         >
           <p id="calculator-help" className="sr-only">
             Use number keys or click buttons. Enter to evaluate, escape to clear, backspace to delete, alt+C to clear
-            memory, alt+R to recall, alt+= for M plus, alt+- for M minus.
+            memory, alt+R to recall, alt+= for M plus, alt+- for M minus. Press A for last answer, S for square root.
           </p>
 
           <div className="display">
@@ -293,6 +411,7 @@ const App = () => {
                 </span>
               </div>
             </div>
+            {livePreview ? <div className="preview" aria-live="polite">{livePreview}</div> : null}
             {error ? <div className="error" role="alert">{error}</div> : null}
           </div>
 
@@ -334,6 +453,8 @@ const App = () => {
             <li><span>Alt + C / R</span> MC / MR</li>
             <li><span>Alt + = / -</span> M+ / M-</li>
             <li><span>±</span> toggle sign of last number</li>
+            <li><span>A</span> insert last answer</li>
+            <li><span>S</span> square root current number</li>
           </ul>
           <p className="muted">Use () for grouping; decimals are limited per number.</p>
         </aside>
@@ -350,6 +471,7 @@ const CalcButton = ({ value, onPress }) => {
     MEMORY_KEYS.has(value) ? 'memory' : '',
     value === '⌫' ? 'control' : '',
     value === '±' ? 'control' : '',
+    ['√', '%', 'Ans'].includes(value) ? 'function' : '',
   ]
     .filter(Boolean)
     .join(' ');

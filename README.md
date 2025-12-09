@@ -1,14 +1,14 @@
 # Signal Calculator
 
-Accessible, keyboard-first calculator built with React 18. Includes memory keys, history tape, sign toggle, parentheses support, copy-to-clipboard, and a high-contrast theme.
+Accessible, keyboard-first calculator built with React 18. Includes memory keys, history tape, sign toggle, parentheses/powers/square root/percent support, copy-to-clipboard, high-contrast theme, and local persistence.
 
 ## Features
-- Full keyboard control: numbers, operators, decimal, Enter `=` to evaluate, Backspace to delete, Escape/Delete to clear, Alt+C/MR/M+/M- for memory controls.
-- Memory keys: MC, MR, M+, M- operate on the current result; memory persists until cleared.
-- History tape: last five calculations are captured with expression and result.
-- Input helpers: sign toggle (±), parentheses, per-number decimal guard, operator replacement, incomplete-expression guard.
-- Accessibility: `role="application"` wrapper, polite live regions for expression/result and copy status, screen-reader help text, focus outlines, ARIA labels on controls, copy confirmation.
-- Theming: default dark look plus high-contrast toggle.
+- Full keyboard control: numbers, operators (`+ - * / ^`), decimal, Enter `=` to evaluate, Backspace to delete, Escape/Delete to clear, Alt+C/MR/M+/M- for memory controls, `A` for last answer, `S` for square root.
+- Memory keys: MC, MR, M+, M- operate on the current result; memory persists until cleared and is saved locally.
+- History tape: last five calculations are captured with expression and result; history persists locally.
+- Input helpers: sign toggle (±), parentheses, power (^), square root (√), percent (%), per-number decimal guard, operator replacement, incomplete-expression and parentheses guards, live result preview when valid.
+- Accessibility: `role="application"` wrapper, polite live regions for expression/result/preview and copy status, screen-reader help text, focus outlines, ARIA labels on controls, copy confirmation.
+- Theming: default dark look plus high-contrast toggle (persisted).
 - Copy result: one-click copy with status feedback.
 
 ## Quick start
@@ -19,7 +19,7 @@ npm start
 Visit `http://localhost:3000` and interact via keyboard or mouse.
 
 ## Keyboard shortcuts
-- Numbers / `+ - * / . ( )` : type directly
+- Numbers / `+ - * / ^ . ( )` : type directly
 - `Enter` or `=` : evaluate
 - `Backspace` : delete last character
 - `Escape` or `Delete` : clear all
@@ -28,6 +28,9 @@ Visit `http://localhost:3000` and interact via keyboard or mouse.
 - `Alt + =` : memory add (M+)
 - `Alt + -` : memory subtract (M-)
 - `±` button: toggle sign of the last number
+- `A` : insert last answer
+- `S` : square root current number
+- `%` : convert current number to percent
 
 ## Memory behavior
 - M+ / M- operate on the current result value.

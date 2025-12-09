@@ -127,6 +127,12 @@ body {
   color: var(--muted);
 }
 
+.preview {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
 .error {
   margin-top: 8px;
   color: var(--danger);
@@ -175,6 +181,11 @@ body {
 .buttons-group button.memory {
   background: linear-gradient(135deg, #059669, #10b981);
   color: #ecfdf3;
+}
+
+.buttons-group button.function {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: #fff7ed;
 }
 
 .buttons-group button.equals {

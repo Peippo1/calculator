@@ -13,6 +13,7 @@ beforeEach(() => {
       writeText: jest.fn().mockResolvedValue(),
     },
   });
+  window.localStorage.clear();
 });
 
 test('calculates an expression, shows result, and logs history', async () => {
@@ -79,4 +80,35 @@ test('toggle sign updates the last number', async () => {
   await press('±');
 
   expect(screen.getByLabelText(/expression/i)).toHaveTextContent('-5');
+});
+
+test('supports square root and percent', async () => {
+  render(<App />);
+
+  await press('9');
+  await press('√');
+  await press('=');
+  expect(screen.getByLabelText(/result/i)).toHaveTextContent('3');
+
+  await press('5');
+  await press('0');
+  await press('%');
+  await press('=');
+  expect(screen.getByLabelText(/result/i)).toHaveTextContent('0.5');
+});
+
+test('inserts last answer with Ans key', async () => {
+  render(<App />);
+
+  await press('3');
+  await press('+');
+  await press('2');
+  await press('=');
+
+  await press('Ans');
+  await press('+');
+  await press('5');
+  await press('=');
+
+  expect(screen.getByLabelText(/result/i)).toHaveTextContent('10');
 });
