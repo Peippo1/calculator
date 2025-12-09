@@ -1,6 +1,19 @@
+<p align="center">
+  <img src="./docs/Store Header.png" alt="FinchWorks Studio Banner" />
+</p>
+
 # Signal Calculator
 
 Accessible, keyboard-first calculator built with React 18. Includes memory keys, history tape, sign toggle, parentheses/powers/square root/percent support, copy-to-clipboard, high-contrast theme, and local persistence.
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-18.0.0-61dafb?logo=react&logoColor=white" alt="React 18" />
+  <img src="https://img.shields.io/badge/Build-Passing-brightgreen?logo=github-actions&logoColor=white" alt="Build Status" />
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License" />
+  <img src="https://img.shields.io/badge/PRs-Welcome-green.svg" alt="PRs Welcome" />
+  <img src="https://img.shields.io/github/stars/YOUR_USERNAME/YOUR_REPO?style=social" alt="GitHub stars" />
+  <img src="https://img.shields.io/badge/FinchWorks%20Studio-Crafted-blue?logo=sparkles&logoColor=white" alt="FinchWorks Studio" />
+</p>
 
 ## Features
 - Full keyboard control: numbers, operators (`+ - * / ^`), decimal, Enter `=` to evaluate, Backspace to delete, Escape/Delete to clear, Alt+C/MR/M+/M- for memory controls, `A` for last answer, `S` for square root.
@@ -14,9 +27,9 @@ Accessible, keyboard-first calculator built with React 18. Includes memory keys,
 ## Quick start
 ```bash
 npm install
-npm start
+npm run dev
 ```
-Visit `http://localhost:3000` and interact via keyboard or mouse.
+Visit `http://localhost:5173` and interact via keyboard or mouse.
 
 ## Screenshot
 
@@ -42,12 +55,13 @@ Visit `http://localhost:3000` and interact via keyboard or mouse.
 - MC clears stored memory without touching the expression/result.
 
 ## Scripts
-- `npm start` — run dev server
-- `npm test` — run tests once (`CI=true npm test -- --watch=false`)
+- `npm run dev` — run dev server
+- `npm test` — run Vitest
 - `npm run build` — production build
+- `npm run preview` — preview a production build locally
 
 ## Testing
-Jest + Testing Library cover calculation, clearing, keyboard flows, memory recall, and sign toggling. Add more cases as you extend advanced math or UI behaviors.
+Vitest + Testing Library cover calculation, clearing, keyboard flows, memory recall, and sign toggling. Add more cases as you extend advanced math or UI behaviors.
 
 ## Accessibility & UX notes
 - Visible focus states on all interactive elements; calculator gains focus on load.
@@ -56,10 +70,38 @@ Jest + Testing Library cover calculation, clearing, keyboard flows, memory recal
 - Responsive layout adapts to mobile with larger hit targets.
 
 ## Tech stack
-- React 18, mathjs, Create React App tooling
+- React 18, mathjs, Vite tooling
 - CSS variables for theming and responsive grid layout
 
 ## Future ideas
 - Persist history/memory across sessions
 - Add advanced functions (sqrt, power), tape export, or programmable shortcuts
 - Add auditory feedback cues for error states
+
+## License
+
+MIT License
+
+Copyright (c) 2025 Tim Finch
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+© 2025 FinchWorks Studio — Crafted with care.

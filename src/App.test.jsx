@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
 import App from './App';
 
 const press = async (label) => {
@@ -10,7 +11,7 @@ const press = async (label) => {
 beforeEach(() => {
   Object.assign(navigator, {
     clipboard: {
-      writeText: jest.fn().mockResolvedValue(),
+      writeText: vi.fn().mockResolvedValue(),
     },
   });
   window.localStorage.clear();
